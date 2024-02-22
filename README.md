@@ -13,11 +13,11 @@ CPUs and do not contain high performance GPUs.
 This could lead to allowing the larger Whisper models to run faster
 on laptops without a GPU.
 
-Hardware for experiments: \
-CPU - AMD Ryzen 5 5600X \
-RAM - 32GB DDR4 \
-GPU - Nvidia GeForce RTX 3060 Ti \
-HDD - M.2 SSD 
+Hardware for experiments: 
+CPU - AMD Ryzen 5 5600X 
+RAM - 32GB DDR4 
+GPU - Nvidia GeForce RTX 3060 Ti 
+HDD - M.2 SSD
 
 ## Usage
 
@@ -33,6 +33,25 @@ And then install the module using:
 
 ```bash
 pip install -e ./whisper
+```
+
+If you running this program in windows, install ffmpeg by chocolately([https://chocolatey.org/](https://chocolatey.org/)).
+
+```
+choco install ffmpeg
+```
+
+my own test audio from librispeech dataset.
+
+```
+@inproceedings{panayotov2015librispeech,
+  title={Librispeech: an ASR corpus based on public domain audio books},
+  author={Panayotov, Vassil and Chen, Guoguo and Povey, Daniel and Khudanpur, Sanjeev},
+  booktitle={Acoustics, Speech and Signal Processing (ICASSP), 2015 IEEE International Conference on},
+  pages={5206--5210},
+  year={2015},
+  organization={IEEE}
+}
 ```
 
 ### Explanation
@@ -56,60 +75,59 @@ installation instructions.
 
 ## Results
 
-Test audio is the first 30 seconds of: \
+Test audio is the first 30 seconds of: 
 https://www.youtube.com/watch?v=oKOtzIo-uYw
 
-| Device | Whisper Model | Data Type | Linear Layer | Inference Time |
-| --- | --- | ----------- | --- | --- |
-| GPU | tiny | fp32 | Linear | 0.5 |
-| CPU | tiny  | fp32 | nn.Linear | 2.3 |
-| CPU | tiny  | qint8 (quant) | nn.Linear | 3.1 (0.74x slowdown) |
+| Device | Whisper Model | Data Type     | Linear Layer | Inference Time       |
+| ------ | ------------- | ------------- | ------------ | -------------------- |
+| GPU    | tiny          | fp32          | Linear       | 0.5                  |
+| CPU    | tiny          | fp32          | nn.Linear    | 2.3                  |
+| CPU    | tiny          | qint8 (quant) | nn.Linear    | 3.1 (0.74x slowdown) |
 
-Tiny quantized model is 9.67x faster than real time. \
+Tiny quantized model is 9.67x faster than real time. 
 Tiny quantized model is 0.74x slower than the original model.
 
-| Device | Whisper Model | Data Type | Linear Layer | Inference Time |
-| --- | --- | ----------- | --- | --- |
-| GPU | base | fp32 | Linear | 0.6 |
-| CPU | base  | fp32 | nn.Linear | 5.2 |
-| CPU | base  | qint8 (quant) | nn.Linear | 3.2 (1.62x speedup) |
+| Device | Whisper Model | Data Type     | Linear Layer | Inference Time      |
+| ------ | ------------- | ------------- | ------------ | ------------------- |
+| GPU    | base          | fp32          | Linear       | 0.6                 |
+| CPU    | base          | fp32          | nn.Linear    | 5.2                 |
+| CPU    | base          | qint8 (quant) | nn.Linear    | 3.2 (1.62x speedup) |
 
-Base quantized model is 9.37x faster than real time. \
+Base quantized model is 9.37x faster than real time. 
 Base quantized model is 1.62x faster than the original model.
 
-| Device | Whisper Model | Data Type | Linear Layer | Inference Time |
-| --- | --- | ----------- | --- | --- |
-| GPU | small | fp32 | Linear | 0.7 |
-| CPU | small | fp32 | nn.Linear | 19.1s |
-| CPU | small | qint8 (quant) | nn.Linear | 6.9s (2.76x speedup) |
+| Device | Whisper Model | Data Type     | Linear Layer | Inference Time       |
+| ------ | ------------- | ------------- | ------------ | -------------------- |
+| GPU    | small         | fp32          | Linear       | 0.7                  |
+| CPU    | small         | fp32          | nn.Linear    | 19.1s                |
+| CPU    | small         | qint8 (quant) | nn.Linear    | 6.9s (2.76x speedup) |
 
-Small quantized model is 4.34x faster than real time. \
+Small quantized model is 4.34x faster than real time. 
 Small quantized model is 2.76x faster than the original model.
 
-| Device | Whisper Model | Data Type | Linear Layer | Inference Time |
-| --- | --- | ----------- | --- | --- 
-| GPU | medium | fp32 | Linear | 1.7s |
-| CPU | medium | fp32 | nn.Linear | 60.7 |
-| CPU | medium | qint8 (quant) | nn.Linear | 23.1 (2.62x speedup) |
+| Device | Whisper Model | Data Type     | Linear Layer | Inference Time       |
+| ------ | ------------- | ------------- | ------------ | -------------------- |
+| GPU    | medium        | fp32          | Linear       | 1.7s                 |
+| CPU    | medium        | fp32          | nn.Linear    | 60.7                 |
+| CPU    | medium        | qint8 (quant) | nn.Linear    | 23.1 (2.62x speedup) |
 
-Medium quantized model is 1.29x faster than real time. \
+Medium quantized model is 1.29x faster than real time. 
 Medium quantized model is 2.62x faster than the original model.
 
 # Docker
 
-Build the docker image.   
+Build the docker image.
 
-``` 
+```
 docker build -t whisper-cpu . 
 ```
-Run the quantized model.   
+
+Run the quantized model.
 
 ```
 docker run --rm -v "$(pwd)/audio":/usr/src/app/audio -v "$(pwd)/script":/usr/src/app/script whisper-cpu python3 ./script/custom_whisper.py audio/path_to_dir_or_audio_file --language English --model medium.en 
 ```
 
-- ```-v "$(pwd)/audio":/usr/src/app/audio``` this creates a volume to give docker access to your audio files.
-- ```-v "$(pwd)/script":/usr/src/app/script``` this volume gives docker access to the custom start script. Transcription results are also stored here.
-
-- Note: you might want to adjust ```./script/custom_whisper.py``` for your own needs.
-
+- ``-v "$(pwd)/audio":/usr/src/app/audio`` this creates a volume to give docker access to your audio files.
+- ``-v "$(pwd)/script":/usr/src/app/script`` this volume gives docker access to the custom start script. Transcription results are also stored here.
+- Note: you might want to adjust ``./script/custom_whisper.py`` for your own needs.
